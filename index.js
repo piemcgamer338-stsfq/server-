@@ -4,12 +4,9 @@ const {
     PermissionsBitField
 } = require("discord.js");
 
-levelSystem(client, db);
-
 const { Pool } = require("pg");
 
 const embeds = require("./embeds.js");
-
 const levelSystem = require("./levels/levelSystem");
 
 
@@ -80,7 +77,6 @@ async function cacheInvites(guild) {
 
 
 
-
 client.once("ready", async () => {
 
 
@@ -109,14 +105,11 @@ client.on("inviteCreate", async invite => {
 });
 
 
-
 client.on("inviteDelete", async invite => {
 
     await cacheInvites(invite.guild);
 
 });
-
-
 
 
 
@@ -178,6 +171,7 @@ client.on("messageCreate", async message => {
 
 
 
+
     // ==========================
     // RULES
     // ==========================
@@ -189,6 +183,7 @@ client.on("messageCreate", async message => {
         });
 
     }
+
 
 
 
@@ -227,8 +222,6 @@ client.on("messageCreate", async message => {
 
 
 
-
-
 client.on("guildMemberAdd", async member => {
 
 
@@ -243,10 +236,8 @@ client.on("guildMemberAdd", async member => {
             inviteCache.get(member.guild.id);
 
 
-
         const newInvites =
             await member.guild.invites.fetch();
-
 
 
         for (const invite of newInvites.values()) {
@@ -254,7 +245,6 @@ client.on("guildMemberAdd", async member => {
 
             const oldUses =
                 oldInvites?.get(invite.code) || 0;
-
 
 
             if (invite.uses > oldUses) {
@@ -277,7 +267,6 @@ client.on("guildMemberAdd", async member => {
 
 
         await cacheInvites(member.guild);
-
 
 
     } catch (err) {
@@ -309,19 +298,14 @@ client.on("guildMemberAdd", async member => {
         return;
 
 
-
-
     const channel =
         member.guild.channels.cache.get(
             result.rows[0].welcome_channel
         );
 
 
-
     if (!channel)
         return;
-
-
 
 
     channel.send(
@@ -329,13 +313,13 @@ client.on("guildMemberAdd", async member => {
     );
 
 
-
 });
 
 
 
 
-
+// Initialize level system (after client and db are created and event handlers are registered)
+levelSystem(client, db);
 
 
 client.login(
