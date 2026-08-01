@@ -4,9 +4,13 @@ const {
     PermissionsBitField
 } = require("discord.js");
 
+levelSystem(client, db);
+
 const { Pool } = require("pg");
 
 const embeds = require("./embeds.js");
+
+const levelSystem = require("./levels/levelSystem");
 
 
 const client = new Client({
