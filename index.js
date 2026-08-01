@@ -98,33 +98,58 @@ client.on("messageCreate", async message => {
 
 client.on("guildMemberAdd", async member => {
 
-
     const oldInvites = invites.get(member.guild.id);
-
 
     const newInvites = await member.guild.invites.fetch().catch(() => null);
 
-
     if (!newInvites) return;
-
-
-    invites.set(member.guild.id,newInvites);
 
 
     let inviter = "Unknown";
 
 
-    newInvites.forEach(inv => {
+    if (oldInvites) {
 
-        const old = oldInvites?.get(inv.code);
+        newInvites.forEach(invite => {
+
+            const oldInvite = oldInvites.get(invite.code);
+
+            if (oldInvite && invite.uses > oldInvite.uses) {
+                inviter = invite.inviter;
+            }
+
+        });
+
+    }
 
 
-        if(old && inv.uses > old.uses)
-        {
-            inviter = inv.inviter;
-        }
+    invites.set(member.guild.id, newInvites);
 
-    });
+
+
+    const data = await db.query(
+        "SELECT welcome_channel FROM guilds WHERE guild_id=$1",
+        [member.guild.id]
+    );
+
+
+    if (!data.rows.length) return;
+
+
+    const channel = member.guild.channels.cache.get(
+        data.rows[0].welcome_channel
+    );
+
+
+    if (!channel) return;
+
+
+
+    channel.send(
+`<:right_arrow_purple:1532994544705212447> ${member} **Joined** ; Invited by ${inviter} | Server have **${member.guild.memberCount}** Members <:Halloween4:1532994476824461423>`
+    );
+
+});
 
 
 
