@@ -6,6 +6,7 @@ const {
 
 const { Pool } = require("pg");
 
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -36,18 +37,52 @@ CREATE TABLE IF NOT EXISTS guilds (
 const invites = new Map();
 
 
-client.once("ready", async () => {
+
+client.once("clientReady", async () => {
 
     console.log(`${client.user.tag} online`);
 
+
     for (const guild of client.guilds.cache.values()) {
 
-        const inv = await guild.invites.fetch().catch(() => null);
+        const guildInvites = await guild.invites.fetch().catch(() => null);
 
-        if (inv)
-            invites.set(guild.id, inv);
+        if (guildInvites) {
+            invites.set(guild.id, guildInvites);
+        }
     }
+
 });
+
+
+
+
+// Update invite cache when new invite is created
+client.on("inviteCreate", invite => {
+
+    const guildInvites = invites.get(invite.guild.id) || new Map();
+
+    guildInvites.set(invite.code, invite);
+
+    invites.set(invite.guild.id, guildInvites);
+
+});
+
+
+
+
+// Remove deleted invites
+client.on("inviteDelete", invite => {
+
+    const guildInvites = invites.get(invite.guild.id);
+
+    if (!guildInvites) return;
+
+    guildInvites.delete(invite.code);
+
+});
+
+
 
 
 
@@ -60,18 +95,22 @@ client.on("messageCreate", async message => {
     const args = message.content.split(" ");
 
 
+
     if (args[0] === ".setwelcome") {
 
 
-        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator))
-            return message.reply("Admin only");
+        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return message.reply("❌ Admin only");
+        }
 
 
         const channel = message.mentions.channels.first();
 
 
-        if (!channel)
-            return message.reply("Use: .setwelcome #channel");
+        if (!channel) {
+            return message.reply("Use: `.setwelcome #channel`");
+        }
+
 
 
         await db.query(
@@ -96,49 +135,70 @@ client.on("messageCreate", async message => {
 
 
 
+
+
+
 client.on("guildMemberAdd", async member => {
+
 
     const oldInvites = invites.get(member.guild.id);
 
+
     const newInvites = await member.guild.invites.fetch().catch(() => null);
+
 
     if (!newInvites) return;
 
 
+
     let inviter = "Unknown";
+
 
 
     if (oldInvites) {
 
         newInvites.forEach(invite => {
 
+
             const oldInvite = oldInvites.get(invite.code);
 
+
+
             if (oldInvite && invite.uses > oldInvite.uses) {
+
                 inviter = invite.inviter;
+
             }
+
 
         });
 
     }
 
 
+
+    // Update cache after checking
+
     invites.set(member.guild.id, newInvites);
 
 
 
-    const data = await db.query(
+
+    const result = await db.query(
         "SELECT welcome_channel FROM guilds WHERE guild_id=$1",
         [member.guild.id]
     );
 
 
-    if (!data.rows.length) return;
+
+    if (!result.rows.length) return;
+
 
 
     const channel = member.guild.channels.cache.get(
-        data.rows[0].welcome_channel
+        result.rows[0].welcome_channel
     );
+
 
 
     if (!channel) return;
@@ -149,34 +209,12 @@ client.on("guildMemberAdd", async member => {
 `<:right_arrow_purple:1532994544705212447> ${member} **Joined** ; Invited by ${inviter} | Server have **${member.guild.memberCount}** Members <:Halloween4:1532994476824461423>`
     );
 
-});
-
-
-
-    const data = await db.query(
-        "SELECT welcome_channel FROM guilds WHERE guild_id=$1",
-        [member.guild.id]
-    );
-
-
-    if(!data.rows.length) return;
-
-
-    const channel = member.guild.channels.cache.get(
-        data.rows[0].welcome_channel
-    );
-
-
-    if(!channel) return;
-
-
-
-    channel.send(
-`<:right_arrow_purple:1532994544705212447> ${member} **Joined** ; Invited by ${inviter} | Server have **${member.guild.memberCount}** Members <:Halloween4:1532994476824461423>`
-    );
 
 
 });
+
+
+
 
 
 
