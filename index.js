@@ -18,12 +18,14 @@ const client = new Client({
 });
 
 
+
 const db = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false
     }
 });
+
 
 
 db.query(`
@@ -34,7 +36,32 @@ CREATE TABLE IF NOT EXISTS guilds (
 `);
 
 
+
+
+// Store invites
 const invites = new Map();
+
+
+
+
+
+async function saveInvites(guild) {
+
+    try {
+
+        const guildInvites = await guild.invites.fetch();
+
+        invites.set(guild.id, guildInvites);
+
+    } catch (err) {
+
+        console.log("Invite cache error:", err.message);
+
+    }
+
+}
+
+
 
 
 
@@ -45,11 +72,8 @@ client.once("clientReady", async () => {
 
     for (const guild of client.guilds.cache.values()) {
 
-        const guildInvites = await guild.invites.fetch().catch(() => null);
+        await saveInvites(guild);
 
-        if (guildInvites) {
-            invites.set(guild.id, guildInvites);
-        }
     }
 
 });
@@ -57,30 +81,37 @@ client.once("clientReady", async () => {
 
 
 
-// Update invite cache when new invite is created
-client.on("inviteCreate", invite => {
 
-    const guildInvites = invites.get(invite.guild.id) || new Map();
+client.on("guildCreate", async guild => {
 
-    guildInvites.set(invite.code, invite);
-
-    invites.set(invite.guild.id, guildInvites);
+    await saveInvites(guild);
 
 });
 
 
 
 
-// Remove deleted invites
-client.on("inviteDelete", invite => {
 
-    const guildInvites = invites.get(invite.guild.id);
 
-    if (!guildInvites) return;
+client.on("inviteCreate", async invite => {
 
-    guildInvites.delete(invite.code);
+    await saveInvites(invite.guild);
 
 });
+
+
+
+
+
+
+client.on("inviteDelete", async invite => {
+
+    await saveInvites(invite.guild);
+
+});
+
+
+
 
 
 
@@ -88,8 +119,11 @@ client.on("inviteDelete", invite => {
 
 client.on("messageCreate", async message => {
 
+
     if (message.author.bot) return;
+
     if (!message.guild) return;
+
 
 
     const args = message.content.split(" ");
@@ -99,17 +133,28 @@ client.on("messageCreate", async message => {
     if (args[0] === ".setwelcome") {
 
 
-        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+        if (!message.member.permissions.has(
+            PermissionsBitField.Flags.Administrator
+        )) {
+
             return message.reply("❌ Admin only");
+
         }
+
 
 
         const channel = message.mentions.channels.first();
 
 
+
         if (!channel) {
-            return message.reply("Use: `.setwelcome #channel`");
+
+            return message.reply(
+                "Usage: `.setwelcome #channel`"
+            );
+
         }
+
 
 
 
@@ -127,7 +172,10 @@ client.on("messageCreate", async message => {
         );
 
 
-        message.reply(`✅ Welcome channel set to ${channel}`);
+
+        message.reply(
+            `✅ Welcome channel set to ${channel}`
+        );
 
     }
 
@@ -138,70 +186,105 @@ client.on("messageCreate", async message => {
 
 
 
+
+
+
 client.on("guildMemberAdd", async member => {
-
-
-    const oldInvites = invites.get(member.guild.id);
-
-
-    const newInvites = await member.guild.invites.fetch().catch(() => null);
-
-
-    if (!newInvites) return;
-
 
 
     let inviter = "Unknown";
 
 
 
-    if (oldInvites) {
-
-        newInvites.forEach(invite => {
+    try {
 
 
-            const oldInvite = oldInvites.get(invite.code);
+        const oldInvites = invites.get(member.guild.id);
 
 
 
-            if (oldInvite && invite.uses > oldInvite.uses) {
+        const newInvites = await member.guild.invites.fetch();
 
-                inviter = invite.inviter;
+
+
+        if (oldInvites) {
+
+
+            for (const [code, invite] of newInvites) {
+
+
+                const oldInvite = oldInvites.get(code);
+
+
+
+                if (
+                    oldInvite &&
+                    invite.uses > oldInvite.uses
+                ) {
+
+                    inviter = invite.inviter;
+
+                    break;
+
+                }
+
 
             }
 
 
-        });
+        }
+
+
+
+        // Update cache
+
+        invites.set(
+            member.guild.id,
+            newInvites
+        );
+
+
+
+    } catch (err) {
+
+        console.log(
+            "Invite check error:",
+            err.message
+        );
 
     }
 
 
 
-    // Update cache after checking
-
-    invites.set(member.guild.id, newInvites);
 
 
 
 
-    const result = await db.query(
+    const data = await db.query(
         "SELECT welcome_channel FROM guilds WHERE guild_id=$1",
-        [member.guild.id]
+        [
+            member.guild.id
+        ]
     );
 
 
 
-    if (!result.rows.length) return;
+    if (!data.rows.length) return;
 
 
 
-    const channel = member.guild.channels.cache.get(
-        result.rows[0].welcome_channel
-    );
+
+    const channel =
+        member.guild.channels.cache.get(
+            data.rows[0].welcome_channel
+        );
 
 
 
     if (!channel) return;
+
+
+
 
 
 
