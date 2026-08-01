@@ -6,6 +6,8 @@ const {
 
 const { Pool } = require("pg");
 
+const embeds = require("./embeds.js");
+
 
 const client = new Client({
     intents: [
