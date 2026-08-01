@@ -37,25 +37,35 @@ CREATE TABLE IF NOT EXISTS guilds (
 
 
 
-
-// Store invites
-const invites = new Map();
-
+// Invite cache
+const inviteCache = new Map();
 
 
 
-
-async function saveInvites(guild) {
+// Save current invites
+async function cacheInvites(guild) {
 
     try {
 
-        const guildInvites = await guild.invites.fetch();
+        const invites = await guild.invites.fetch();
 
-        invites.set(guild.id, guildInvites);
+        inviteCache.set(
+            guild.id,
+            new Map(
+                invites.map(inv => [
+                    inv.code,
+                    inv.uses
+                ])
+            )
+        );
+
 
     } catch (err) {
 
-        console.log("Invite cache error:", err.message);
+        console.log(
+            "Cannot cache invites:",
+            err.message
+        );
 
     }
 
@@ -65,29 +75,22 @@ async function saveInvites(guild) {
 
 
 
-client.once("clientReady", async () => {
+client.once("ready", async () => {
 
-    console.log(`${client.user.tag} online`);
+
+    console.log(
+        `${client.user.tag} online`
+    );
 
 
     for (const guild of client.guilds.cache.values()) {
 
-        await saveInvites(guild);
+        await cacheInvites(guild);
 
     }
 
-});
-
-
-
-
-
-client.on("guildCreate", async guild => {
-
-    await saveInvites(guild);
 
 });
-
 
 
 
@@ -95,21 +98,17 @@ client.on("guildCreate", async guild => {
 
 client.on("inviteCreate", async invite => {
 
-    await saveInvites(invite.guild);
+    await cacheInvites(invite.guild);
 
 });
-
-
-
 
 
 
 client.on("inviteDelete", async invite => {
 
-    await saveInvites(invite.guild);
+    await cacheInvites(invite.guild);
 
 });
-
 
 
 
@@ -133,28 +132,32 @@ client.on("messageCreate", async message => {
     if (args[0] === ".setwelcome") {
 
 
-        if (!message.member.permissions.has(
-            PermissionsBitField.Flags.Administrator
-        )) {
+        if (
+            !message.member.permissions.has(
+                PermissionsBitField.Flags.Administrator
+            )
+        ) {
 
-            return message.reply("❌ Admin only");
+            return message.reply(
+                "❌ You need Administrator permission"
+            );
 
         }
 
 
 
-        const channel = message.mentions.channels.first();
+        const channel =
+            message.mentions.channels.first();
 
 
 
         if (!channel) {
 
             return message.reply(
-                "Usage: `.setwelcome #channel`"
+                "Use: `.setwelcome #channel`"
             );
 
         }
-
 
 
 
@@ -162,7 +165,9 @@ client.on("messageCreate", async message => {
             `
             INSERT INTO guilds(guild_id,welcome_channel)
             VALUES($1,$2)
+
             ON CONFLICT(guild_id)
+
             DO UPDATE SET welcome_channel=$2
             `,
             [
@@ -177,7 +182,9 @@ client.on("messageCreate", async message => {
             `✅ Welcome channel set to ${channel}`
         );
 
+
     }
+
 
 });
 
@@ -199,34 +206,34 @@ client.on("guildMemberAdd", async member => {
     try {
 
 
-        const oldInvites = invites.get(member.guild.id);
+        const oldInvites =
+            inviteCache.get(member.guild.id);
 
 
 
-        const newInvites = await member.guild.invites.fetch();
+        const newInvites =
+            await member.guild.invites.fetch();
 
 
 
-        if (oldInvites) {
+        for (const invite of newInvites.values()) {
 
 
-            for (const [code, invite] of newInvites) {
-
-
-                const oldInvite = oldInvites.get(code);
+            const oldUses =
+                oldInvites?.get(invite.code) || 0;
 
 
 
-                if (
-                    oldInvite &&
-                    invite.uses > oldInvite.uses
-                ) {
+            if (invite.uses > oldUses) {
 
-                    inviter = invite.inviter;
 
-                    break;
+                inviter =
+                    invite.inviter
+                    ? `<@${invite.inviter.id}>`
+                    : "Unknown";
 
-                }
+
+                break;
 
 
             }
@@ -236,21 +243,18 @@ client.on("guildMemberAdd", async member => {
 
 
 
-        // Update cache
-
-        invites.set(
-            member.guild.id,
-            newInvites
-        );
+        await cacheInvites(member.guild);
 
 
 
     } catch (err) {
 
+
         console.log(
-            "Invite check error:",
+            "Invite error:",
             err.message
         );
+
 
     }
 
@@ -258,32 +262,31 @@ client.on("guildMemberAdd", async member => {
 
 
 
+    const result =
+        await db.query(
+            "SELECT welcome_channel FROM guilds WHERE guild_id=$1",
+            [
+                member.guild.id
+            ]
+        );
 
 
-    const data = await db.query(
-        "SELECT welcome_channel FROM guilds WHERE guild_id=$1",
-        [
-            member.guild.id
-        ]
-    );
 
-
-
-    if (!data.rows.length) return;
+    if (!result.rows.length)
+        return;
 
 
 
 
     const channel =
         member.guild.channels.cache.get(
-            data.rows[0].welcome_channel
+            result.rows[0].welcome_channel
         );
 
 
 
-    if (!channel) return;
-
-
+    if (!channel)
+        return;
 
 
 
@@ -301,4 +304,7 @@ client.on("guildMemberAdd", async member => {
 
 
 
-client.login(process.env.DISCORD_TOKEN);
+
+client.login(
+    process.env.DISCORD_TOKEN
+);
