@@ -37,13 +37,13 @@ https://discord.com/guidelines`
             .setDescription(
 `.gg//6xy If you want to earn **Free Loyal Nitro** You have to follow these steps :
 
-<a:blue_dot:1394806045813244050> Must have **"Supporter" Role**. You can get it by putting your status .gg/6xy
+<a:dot:1528726500075900968> Must have **"Supporter" Role**. You can get it by putting your status .gg/6xy
 
-<a:blue_dot:1394806045813244050> Must have **"VIP" Role** <:VIP:1533026174526165043>. You can get it by dragging **Miku Giveaways** on top of your server list and ask for role in ⁠unknown after dragging our server on top of your server list.
+<a:dot:1528726500075900968> Must have **"VIP" Role** <:VIP:1533026174526165043>. You can get it by dragging **Miku Giveaways** on top of your server list and ask for role in ⁠unknown after dragging our server on top of your server list.
 
-<a:blue_dot:1394806045813244050> Must be active in <#1532910791546638471> and follow our server pings.
+<a:dot:1528726500075900968> Must be active in <#1532910791546638471> and follow our server pings.
 
-<a:blue_dot:1394806045813244050> Must have **"6xy" Tag** <a:rb1:1530379253735231562>`
+<a:dot:1528726500075900968> Must have **"6xy" Tag** <a:rb1:1530379253735231562>`
             );
 
     },
