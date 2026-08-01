@@ -118,56 +118,36 @@ client.on("inviteDelete", async invite => {
 
 client.on("messageCreate", async message => {
 
-
     if (message.author.bot) return;
-
     if (!message.guild) return;
-
-
 
     const args = message.content.split(" ");
 
-
+    // ==========================
+    // SET WELCOME
+    // ==========================
 
     if (args[0] === ".setwelcome") {
-
 
         if (
             !message.member.permissions.has(
                 PermissionsBitField.Flags.Administrator
             )
         ) {
-
-            return message.reply(
-                "❌ You need Administrator permission"
-            );
-
+            return message.reply("❌ You need Administrator permission");
         }
 
-
-
-        const channel =
-            message.mentions.channels.first();
-
-
+        const channel = message.mentions.channels.first();
 
         if (!channel) {
-
-            return message.reply(
-                "Use: `.setwelcome #channel`"
-            );
-
+            return message.reply("Use: `.setwelcome #channel`");
         }
-
-
 
         await db.query(
             `
             INSERT INTO guilds(guild_id,welcome_channel)
             VALUES($1,$2)
-
             ON CONFLICT(guild_id)
-
             DO UPDATE SET welcome_channel=$2
             `,
             [
@@ -176,15 +156,43 @@ client.on("messageCreate", async message => {
             ]
         );
 
-
-
-        message.reply(
+        return message.reply(
             `✅ Welcome channel set to ${channel}`
         );
-
-
     }
 
+    // ==========================
+    // RULES
+    // ==========================
+
+    if (args[0] === ".rules") {
+
+        const { EmbedBuilder } = require("discord.js");
+
+        const embed = new EmbedBuilder()
+            .setColor("#00D8FF")
+            .setTitle("/6xy Community Rules")
+            .setDescription(
+`<a:dot:1528726500075900968> Be respectful to other members.
+<a:dot:1528726500075900968> Do not spam or use excessive caps.
+<a:dot:1528726500075900968> Mentions of server raiding will lead to a ban.
+<a:dot:1528726500075900968> No NSFW content.
+<a:dot:1528726500075900968> Be channel-specific (i.e keep your discussions in suitable channels)
+<a:dot:1528726500075900968> Follow the Discord Community Guidelines and Terms of Service.
+<a:dot:1528726500075900968> Please keep the chats in English only.
+<a:dot:1528726500075900968> No alt accounts allowed. Alts can result in ban.
+
+**Also follow discord tos**
+
+https://discord.com/terms
+https://discord.com/guidelines`
+            );
+
+        return message.channel.send({
+            embeds: [embed]
+        });
+
+    }
 
 });
 
