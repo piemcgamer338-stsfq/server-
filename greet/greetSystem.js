@@ -1,4 +1,4 @@
-const { PermissionsBitField } = require("discord.js");
+const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 
 
 module.exports = (client, db) => {
@@ -10,8 +10,6 @@ module.exports = (client, db) => {
     `);
 
 
-
-    // .greet #channel
 
     client.on("messageCreate", async message => {
 
@@ -43,11 +41,9 @@ module.exports = (client, db) => {
 
 
             if (!channel) {
-
                 return message.reply(
                     "Use: `.greet #channel`"
                 );
-
             }
 
 
@@ -79,7 +75,6 @@ module.exports = (client, db) => {
 
 
 
-    // Member join message
 
     client.on("guildMemberAdd", async member => {
 
@@ -102,18 +97,9 @@ module.exports = (client, db) => {
 
 
 
-        const channelID =
-            data.rows[0].greet_channel;
-
-
-
-        if (!channelID) return;
-
-
-
         const channel =
             member.guild.channels.cache.get(
-                channelID
+                data.rows[0].greet_channel
             );
 
 
@@ -122,18 +108,37 @@ module.exports = (client, db) => {
 
 
 
-        channel.send(
+
+        const embed = new EmbedBuilder()
+
+        .setColor("#00D8FF")
+
+        .setDescription(
 `﹒6xy™﹒ <:firstnight_heart:1527007026750951555>    .  . !!
 
 .　⁺ welc . . . ${member}　<a:panda_heart:1527004702980706394>
 
 　♡ <:heart_bandage:1527004627743277118> .gg/6xy　›　[vouches](https://discord.com/channels/1521776721626533888/1532910777088999494)　[rules](https://discord.com/channels/1521776721626533888/1532910774211837973)　♩　　‧　<a:lyf_butterfly_white:1527004636169633872>`
-        );
+        )
 
+        .setThumbnail(
+            member.user.displayAvatarURL({
+                dynamic:true
+            })
+        )
+
+        .setFooter({
+            text:"6xy Community"
+        });
+
+
+
+        channel.send({
+            embeds:[embed]
+        });
 
 
     });
-
 
 
 };
