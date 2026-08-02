@@ -9,6 +9,7 @@ const { Pool } = require("pg");
 const embeds = require("./embeds.js");
 const levelSystem = require("./levels/levelSystem");
 const greetSystem = require("./greet/greetSystem");
+const roleCommands = require("./roles/roleCommands");
 
 
 const client = new Client({
@@ -202,6 +203,7 @@ client.on("messageCreate", async message => {
 
 
 
+
     // ==========================
     // PERK 2
     // ==========================
@@ -324,6 +326,8 @@ levelSystem(client, db);
 
 greetSystem(client, db);
 
+
+roleCommands(client);
 
 client.login(
     process.env.DISCORD_TOKEN
