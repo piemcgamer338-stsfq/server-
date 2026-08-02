@@ -109,16 +109,17 @@ module.exports = (client, db) => {
 
 
 
+
         const embed = new EmbedBuilder()
 
         .setColor("#00D8FF")
 
         .setDescription(
-`﹒6xy™﹒ <:firstnight_heart:1527007026750951555>    .  . !!
+`﹒6xy™﹒ <:nhk_hearts:1533402036702416967>    .  . !!
 
 .　⁺ welc . . . ${member}　<a:panda_heart:1527004702980706394>
 
-　♡ <:heart_bandage:1527004627743277118> .gg/6xy　›　[vouches](https://discord.com/channels/1521776721626533888/1532910777088999494)　[rules](https://discord.com/channels/1521776721626533888/1532910774211837973)　♩　　‧　<a:lyf_butterfly_white:1527004636169633872>`
+　♡ <:bandage_heart:1533402150632427696> .gg/6xy　›　[vouches](https://discord.com/channels/1521776721626533888/1532910777088999494)　[rules](https://discord.com/channels/1521776721626533[...]
         )
 
         .setThumbnail(
@@ -139,6 +140,7 @@ module.exports = (client, db) => {
 
 
     });
+
 
 
 };
