@@ -100,7 +100,7 @@ module.exports = (client, db) => {
         .setDescription(
 `﹒6xy™﹒ <:nhk_hearts:1533402036702416967>    .  . !!
 
-.　⁺ welc . . . ${member}　<a:panda_heart:1527004702980706394>
+.　⁺ welc . . . ${member.user.username}　<:panda_heart:1533402152633110528>
 
 　♡ <:bandage_heart:1533402150632427696> .gg/6xy　›　[vouches](https://discord.com/channels/1521776721626533888/1532910777088999494)　[rules](https://discord.com/channels/1521776721626533888/1532910774211837973)　♩　　‧　<a:butterfly_2:1533402237479555142>`
         )
@@ -125,8 +125,9 @@ module.exports = (client, db) => {
 
 
         channel.send({
-            embeds:[embed]
-        });
+    content: `Welcome ${member}`,
+    embeds: [embed]
+});
 
 
     });
