@@ -13,7 +13,6 @@ module.exports = (client, db) => {
 
     client.on("messageCreate", async message => {
 
-
         if (message.author.bot) return;
         if (!message.guild) return;
 
@@ -21,23 +20,17 @@ module.exports = (client, db) => {
         const args = message.content.split(" ");
 
 
-
         if (args[0] === ".greet") {
 
 
-            if (
-                !message.member.permissions.has(
-                    PermissionsBitField.Flags.Administrator
-                )
-            ) {
+            if (!message.member.permissions.has(
+                PermissionsBitField.Flags.Administrator
+            )) {
                 return message.reply("❌ Admin only");
             }
 
 
-
-            const channel =
-                message.mentions.channels.first();
-
+            const channel = message.mentions.channels.first();
 
 
             if (!channel) {
@@ -45,7 +38,6 @@ module.exports = (client, db) => {
                     "Use: `.greet #channel`"
                 );
             }
-
 
 
             await db.query(
@@ -61,13 +53,11 @@ module.exports = (client, db) => {
             );
 
 
-
             return message.reply(
                 `✅ Greet channel set to ${channel}`
             );
 
         }
-
 
     });
 
@@ -75,9 +65,7 @@ module.exports = (client, db) => {
 
 
 
-
     client.on("guildMemberAdd", async member => {
-
 
 
         const data = await db.query(
@@ -92,9 +80,7 @@ module.exports = (client, db) => {
         );
 
 
-
         if (!data.rows.length) return;
-
 
 
         const channel =
@@ -103,10 +89,7 @@ module.exports = (client, db) => {
             );
 
 
-
         if (!channel) return;
-
-
 
 
 
@@ -119,14 +102,21 @@ module.exports = (client, db) => {
 
 .　⁺ welc . . . ${member}　<a:panda_heart:1527004702980706394>
 
-　♡ <:bandage_heart:1533402150632427696> .gg/6xy　›　[vouches](https://discord.com/channels/1521776721626533888/1532910777088999494)　[rules](https://discord.com/channels/1521776721626533[...]
+　♡ <:bandage_heart:1533402150632427696> .gg/6xy　›　[vouches](https://discord.com/channels/1521776721626533888/1532910777088999494)　[rules](https://discord.com/channels/1521776721626533888/1532910774211837973)　♩　　‧　<a:butterfly_2:1533402237479555142>`
         )
+
+
+        .setImage(
+"https://media.discordapp.net/attachments/1359151586835693662/1440892681634054164/unknown.png?ex=6a6ffde1&is=6a6eac61&hm=ad54b064cb4c20903e68ad2ddb830982dda473790d0e5cf8d5bd4b714e2e95d7&=&format=webp&quality=lossless"
+        )
+
 
         .setThumbnail(
             member.user.displayAvatarURL({
                 dynamic:true
             })
         )
+
 
         .setFooter({
             text:"6xy Community"
@@ -140,7 +130,6 @@ module.exports = (client, db) => {
 
 
     });
-
 
 
 };
