@@ -8,6 +8,7 @@ const { Pool } = require("pg");
 
 const embeds = require("./embeds.js");
 const levelSystem = require("./levels/levelSystem");
+const greetSystem = require("./greet/greetSystem");
 
 
 const client = new Client({
@@ -221,7 +222,6 @@ client.on("messageCreate", async message => {
 
 
 
-
 client.on("guildMemberAdd", async member => {
 
 
@@ -320,6 +320,9 @@ client.on("guildMemberAdd", async member => {
 
 // Initialize level system (after client and db are created and event handlers are registered)
 levelSystem(client, db);
+
+
+greetSystem(client, db);
 
 
 client.login(
