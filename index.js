@@ -10,6 +10,8 @@ const embeds = require("./embeds.js");
 const levelSystem = require("./levels/levelSystem");
 const greetSystem = require("./greet/greetSystem");
 const roleCommands = require("./roles/roleCommands");
+const memberCount = require("./commands/memberCount");
+const translateReply = require("./commands/translateReply");
 
 
 const client = new Client({
@@ -18,7 +20,8 @@ const client = new Client({
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildInvites
+        GatewayIntentBits.GuildInvites,
+        GatewayIntentBits.GuildPresences
     ]
 });
 
@@ -328,6 +331,9 @@ greetSystem(client, db);
 
 
 roleCommands(client);
+
+memberCount(client);
+translateReply(client);
 
 client.login(
     process.env.DISCORD_TOKEN
