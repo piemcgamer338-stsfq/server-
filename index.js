@@ -1,50 +1,61 @@
-const translate = require("translate");
+const {
+    Client,
+    GatewayIntentBits,
+    Partials
+} = require("discord.js");
 
-translate.engine = "google";
+require("dotenv").config();
 
-module.exports = (client) => {
+const memberCount = require("./commands/memberCount");
+const translateReply = require("./commands/translateReply");
 
-    client.on("messageCreate", async (message) => {
+// add your other systems here later
+// const greet = require("./greet/greetSystem");
 
-        if (message.author.bot) return;
-        if (!message.guild) return;
 
-        // Only owner
-        if (message.author.id !== process.env.OWNER_ID) return;
+const client = new Client({
 
-        // Must reply
-        if (!message.reference) return;
+    intents: [
 
-        // Command
-        if (message.content.toLowerCase() !== "en") return;
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildInvites,
+        GatewayIntentBits.GuildPresences
 
-        try {
+    ],
 
-            const replied = await message.fetchReference();
+    partials: [
 
-            if (!replied.content)
-                return message.reply("Nothing to translate.");
+        Partials.Channel,
+        Partials.Message,
+        Partials.GuildMember
 
-            const translated = await translate(
-                replied.content,
-                "en"
-            );
+    ]
 
-            await message.reply({
-                content:
-`## 🇺🇸 English Translation
+});
 
-${translated}`
-            });
 
-        } catch (err) {
 
-            console.error(err);
+client.once("ready", () => {
 
-            message.reply("❌ Translation failed.");
+    console.log(`${client.user.tag} online`);
 
-        }
+});
 
-    });
 
-};
+
+// Commands / systems
+
+memberCount(client);
+
+translateReply(client);
+
+
+// Put your other files here later
+// greet(client);
+
+
+
+client.login(process.env.DISCORD_TOKEN);
